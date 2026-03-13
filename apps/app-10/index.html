@@ -199,6 +199,94 @@
     color: #aaa;
   }
 
+  .help-panel {
+    margin: 12px;
+    background: #fff;
+    border-radius: 14px;
+    padding: 20px 16px;
+    box-shadow: 0 2px 12px rgba(0,51,102,0.1);
+    border-left: 4px solid #F7A81B;
+    display: none;
+  }
+  .help-panel.visible { display: block; }
+  .help-panel h3 {
+    font-size: 1rem;
+    color: #003366;
+    margin-bottom: 6px;
+  }
+  .help-panel p {
+    font-size: 0.85rem;
+    color: #555;
+    margin-bottom: 12px;
+    line-height: 1.4;
+  }
+  .help-panel .device-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+  .help-panel .device-tab {
+    flex: 1;
+    padding: 8px;
+    border: 2px solid #003366;
+    background: #fff;
+    color: #003366;
+    border-radius: 10px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-align: center;
+  }
+  .help-panel .device-tab.active {
+    background: #003366;
+    color: #fff;
+  }
+  .help-steps {
+    display: none;
+    padding: 0;
+    list-style: none;
+    counter-reset: steps;
+  }
+  .help-steps.visible { display: block; }
+  .help-steps li {
+    counter-increment: steps;
+    padding: 8px 0 8px 36px;
+    position: relative;
+    font-size: 0.85rem;
+    color: #333;
+    line-height: 1.4;
+    border-bottom: 1px solid #f0f0f0;
+  }
+  .help-steps li:last-child { border-bottom: none; }
+  .help-steps li::before {
+    content: counter(steps);
+    position: absolute;
+    left: 0;
+    top: 8px;
+    width: 24px; height: 24px;
+    background: #F7A81B;
+    color: #003366;
+    border-radius: 50%;
+    font-size: 0.75rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .help-retry-btn {
+    display: block;
+    width: 100%;
+    margin-top: 14px;
+    padding: 12px;
+    background: #003366;
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
   footer {
     text-align: center;
     padding: 12px;
@@ -277,6 +365,29 @@
 <div class="holes-grid" id="holesGrid"></div>
 
 <div class="accuracy-info" id="accuracyInfo"></div>
+
+<div class="help-panel" id="helpPanel">
+  <h3>Location Access Needed</h3>
+  <p>This app needs your location to calculate distances to each hole. It is <strong>not</strong> stored or shared &mdash; it stays on your phone. Here's how to allow it:</p>
+  <div class="device-tabs">
+    <button class="device-tab active" onclick="showHelp('iphone')">iPhone / Safari</button>
+    <button class="device-tab" onclick="showHelp('android')">Android / Chrome</button>
+  </div>
+  <ol class="help-steps visible" id="helpIphone">
+    <li>Open your iPhone <strong>Settings</strong> app</li>
+    <li>Scroll down and tap <strong>Safari</strong> (or the browser you're using)</li>
+    <li>Tap <strong>Location</strong> under "Settings for Websites"</li>
+    <li>Change to <strong>Allow</strong> or <strong>Ask</strong></li>
+    <li>Come back here and tap the button below</li>
+  </ol>
+  <ol class="help-steps" id="helpAndroid">
+    <li>Tap the <strong>lock icon</strong> (or tune icon) in the address bar at the top</li>
+    <li>Tap <strong>Permissions</strong> or <strong>Site settings</strong></li>
+    <li>Find <strong>Location</strong> and change it to <strong>Allow</strong></li>
+    <li>Come back here and tap the button below</li>
+  </ol>
+  <button class="help-retry-btn" onclick="retryLocation()">Try Again</button>
+</div>
 
 <footer>Built live with AI at Wharton Rotary Hackathon</footer>
 
@@ -407,11 +518,34 @@ function onPosition(pos) {
   updateDistances();
 }
 
+function showHelp(device) {
+  document.getElementById('helpIphone').classList.toggle('visible', device === 'iphone');
+  document.getElementById('helpAndroid').classList.toggle('visible', device === 'android');
+  document.querySelectorAll('.device-tab').forEach(t => t.classList.remove('active'));
+  event.target.classList.add('active');
+}
+
+function retryLocation() {
+  document.getElementById('helpPanel').classList.remove('visible');
+  const statusBar = document.getElementById('statusBar');
+  statusBar.className = 'status-bar';
+  document.getElementById('statusText').textContent = 'Retrying GPS\u2026';
+  if (watchId !== null) navigator.geolocation.clearWatch(watchId);
+  watchId = navigator.geolocation.watchPosition(onPosition, onError, {
+    enableHighAccuracy: true,
+    maximumAge: 5000,
+    timeout: 15000
+  });
+}
+
 function onError(err) {
   const statusBar = document.getElementById('statusBar');
   statusBar.className = 'status-bar error';
   let msg = 'Unable to get location';
-  if (err.code === 1) msg = 'Location access denied \u2014 please enable in settings';
+  if (err.code === 1) {
+    msg = 'Location access denied \u2014 see instructions below';
+    document.getElementById('helpPanel').classList.add('visible');
+  }
   else if (err.code === 2) msg = 'Location unavailable';
   else if (err.code === 3) msg = 'Location request timed out';
   document.getElementById('statusText').textContent = msg;
