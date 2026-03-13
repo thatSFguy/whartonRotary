@@ -297,14 +297,128 @@
             margin-top: 0.5rem;
         }
 
+        /* Splash Overlay */
+        .splash {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, var(--rotary-dark) 0%, #001a33 100%);
+            color: var(--white);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            text-align: center;
+            padding: 2rem;
+            transition: opacity 0.6s ease, visibility 0.6s ease;
+        }
+
+        .splash.hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        .splash h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+        }
+
+        .splash h1 span { color: var(--rotary-gold); }
+
+        .splash .tagline {
+            font-size: 1.15rem;
+            opacity: 0.7;
+            margin-bottom: 2.5rem;
+        }
+
+        .countdown {
+            display: flex;
+            gap: 1.5rem;
+            margin-bottom: 2.5rem;
+        }
+
+        .countdown-unit {
+            text-align: center;
+        }
+
+        .countdown-unit .value {
+            font-size: 3rem;
+            font-weight: 800;
+            color: var(--rotary-gold);
+            line-height: 1;
+            min-width: 70px;
+            display: block;
+        }
+
+        .countdown-unit .label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            opacity: 0.5;
+            margin-top: 0.4rem;
+        }
+
+        .splash .date-line {
+            font-size: 1rem;
+            opacity: 0.6;
+            margin-bottom: 1rem;
+        }
+
+        .splash .rotary-credit {
+            font-size: 0.85rem;
+            opacity: 0.4;
+            margin-top: 2rem;
+        }
+
+        /* Secret button: the period after "Wharton, TX" in the credit line */
+        .secret-trigger {
+            cursor: default;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
         @media (max-width: 768px) {
             header h1 { font-size: 1.6rem; }
             .steps { grid-template-columns: repeat(2, 1fr); }
             .apps-grid { grid-template-columns: 1fr; }
+            .splash h1 { font-size: 1.8rem; }
+            .countdown-unit .value { font-size: 2.2rem; min-width: 50px; }
+            .countdown { gap: 1rem; }
         }
     </style>
 </head>
 <body>
+
+<!-- Splash Countdown Overlay -->
+<div class="splash" id="splash">
+    <h1>Something <span>Big</span> Is Coming</h1>
+    <div class="tagline">Rotary Club of Wharton</div>
+    <div class="countdown" id="countdown">
+        <div class="countdown-unit">
+            <span class="value" id="cd-days">--</span>
+            <div class="label">Days</div>
+        </div>
+        <div class="countdown-unit">
+            <span class="value" id="cd-hours">--</span>
+            <div class="label">Hours</div>
+        </div>
+        <div class="countdown-unit">
+            <span class="value" id="cd-mins">--</span>
+            <div class="label">Minutes</div>
+        </div>
+        <div class="countdown-unit">
+            <span class="value" id="cd-secs">--</span>
+            <div class="label">Seconds</div>
+        </div>
+    </div>
+    <div class="date-line">April 15, 2026</div>
+    <div class="rotary-credit">Rotary Club of Wharton<span class="secret-trigger" id="secret-btn">,</span> TX</div>
+</div>
 
 <header>
     <div class="badge">LIVE EVENT</div>
@@ -431,9 +545,60 @@
         return div.innerHTML;
     }
 
-    // Initial check, then poll
-    checkForApps();
-    setInterval(checkForApps, POLL_INTERVAL);
+    // ---- Splash Countdown ----
+    const TARGET = new Date('2026-04-15T10:00:00-06:00'); // April 15, 10am CST
+    const splash = document.getElementById('splash');
+
+    function updateCountdown() {
+        const now = new Date();
+        const diff = TARGET - now;
+
+        if (diff <= 0) {
+            // Event time — auto-dismiss splash
+            splash.classList.add('hidden');
+            return;
+        }
+
+        const d = Math.floor(diff / 86400000);
+        const h = Math.floor((diff % 86400000) / 3600000);
+        const m = Math.floor((diff % 3600000) / 60000);
+        const s = Math.floor((diff % 60000) / 1000);
+
+        document.getElementById('cd-days').textContent = d;
+        document.getElementById('cd-hours').textContent = h;
+        document.getElementById('cd-mins').textContent = m;
+        document.getElementById('cd-secs').textContent = s;
+    }
+
+    updateCountdown();
+    setInterval(updateCountdown, 1000);
+
+    // Secret button: tap the comma 5 times quickly to dismiss splash
+    let secretTaps = 0;
+    let secretTimer = null;
+    document.getElementById('secret-btn').addEventListener('click', () => {
+        secretTaps++;
+        clearTimeout(secretTimer);
+        if (secretTaps >= 5) {
+            splash.classList.add('hidden');
+            secretTaps = 0;
+        }
+        secretTimer = setTimeout(() => { secretTaps = 0; }, 2000);
+    });
+
+    // Also allow dismissing via ?go query param for easy testing
+    if (new URLSearchParams(window.location.search).has('go')) {
+        splash.classList.add('hidden');
+    }
+
+    // Only poll for apps when splash is hidden
+    function startPolling() {
+        checkForApps();
+        setInterval(checkForApps, POLL_INTERVAL);
+    }
+
+    // Start polling immediately (apps load behind the splash)
+    startPolling();
 </script>
 
 </body>
