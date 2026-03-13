@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Wharton CC Distance Finder</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #f0f4f8;
+    color: #003366;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+  header {
+    background: linear-gradient(135deg, #003366 0%, #004a8f 100%);
+    color: #fff;
+    padding: 18px 16px 14px;
+    text-align: center;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+  }
+  header h1 {
+    font-size: 1.3rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+  }
+  header p {
+    font-size: 0.8rem;
+    opacity: 0.85;
+    margin-top: 4px;
+  }
+  .status-bar {
+    background: #F7A81B;
+    color: #003366;
+    text-align: center;
+    padding: 8px 12px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+  .status-bar.error { background: #e74c3c; color: #fff; }
+  .status-bar.success { background: #27ae60; color: #fff; }
+  .pulse {
+    width: 8px; height: 8px;
+    background: #003366;
+    border-radius: 50%;
+    animation: pulse 1.5s infinite;
+  }
+  .status-bar.success .pulse { background: #fff; }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(0.7); }
+  }
+
+  .unit-toggle {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 16px 4px;
+  }
+  .unit-toggle button {
+    padding: 6px 20px;
+    border: 2px solid #003366;
+    background: #fff;
+    color: #003366;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .unit-toggle button.active {
+    background: #003366;
+    color: #fff;
+  }
+
+  .holes-grid {
+    padding: 12px 12px 20px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    flex: 1;
+  }
+  .hole-card {
+    background: #fff;
+    border-radius: 14px;
+    padding: 14px 10px;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(0,51,102,0.08);
+    border: 2px solid transparent;
+    transition: all 0.3s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+  }
+  .hole-card.nearest {
+    border-color: #F7A81B;
+    box-shadow: 0 4px 16px rgba(247,168,27,0.3);
+    background: linear-gradient(180deg, #fffbf0 0%, #fff 100%);
+  }
+  .hole-number {
+    background: #003366;
+    color: #fff;
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.95rem;
+  }
+  .hole-card.nearest .hole-number {
+    background: #F7A81B;
+    color: #003366;
+  }
+  .hole-par {
+    font-size: 0.7rem;
+    color: #888;
+    font-weight: 500;
+  }
+  .hole-distance {
+    font-size: 1.35rem;
+    font-weight: 800;
+    color: #003366;
+    line-height: 1.1;
+  }
+  .hole-unit {
+    font-size: 0.65rem;
+    color: #888;
+    font-weight: 500;
+    text-transform: uppercase;
+  }
+  .hole-yardage {
+    font-size: 0.65rem;
+    color: #aaa;
+    margin-top: 2px;
+  }
+  .nearest-label {
+    font-size: 0.6rem;
+    background: #F7A81B;
+    color: #003366;
+    padding: 2px 8px;
+    border-radius: 8px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .compass-section {
+    background: #fff;
+    margin: 0 12px 12px;
+    border-radius: 14px;
+    padding: 16px;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(0,51,102,0.08);
+  }
+  .compass-section h3 {
+    font-size: 0.85rem;
+    color: #003366;
+    margin-bottom: 8px;
+  }
+  .nearest-info {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+  }
+  .nearest-big-distance {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: #003366;
+  }
+  .nearest-big-unit {
+    font-size: 0.9rem;
+    color: #888;
+  }
+  .arrow-indicator {
+    width: 60px; height: 60px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #003366, #004a8f);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.8rem;
+    color: #F7A81B;
+    transition: transform 0.3s;
+  }
+
+  .accuracy-info {
+    text-align: center;
+    padding: 0 12px 8px;
+    font-size: 0.7rem;
+    color: #aaa;
+  }
+
+  footer {
+    text-align: center;
+    padding: 12px;
+    font-size: 0.7rem;
+    color: #999;
+    border-top: 1px solid #e8ecf0;
+    background: #fff;
+  }
+
+  .loading-screen {
+    position: fixed;
+    inset: 0;
+    background: linear-gradient(135deg, #003366 0%, #004a8f 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    z-index: 100;
+    transition: opacity 0.5s;
+  }
+  .loading-screen.hidden {
+    opacity: 0;
+    pointer-events: none;
+  }
+  .loading-screen .golf-icon {
+    font-size: 3rem;
+    margin-bottom: 16px;
+    animation: bounce 1s infinite;
+  }
+  @keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+  }
+  .loading-screen h2 { font-size: 1.2rem; margin-bottom: 8px; }
+  .loading-screen p { font-size: 0.85rem; opacity: 0.8; }
+</style>
+</head>
+<body>
+
+<div class="loading-screen" id="loadingScreen">
+  <div class="golf-icon">&#9971;</div>
+  <h2>Wharton Country Club</h2>
+  <p>Acquiring your location&hellip;</p>
+</div>
+
+<header>
+  <h1>&#9971; Wharton Country Club</h1>
+  <p>Distance to Each Hole</p>
+</header>
+
+<div class="status-bar" id="statusBar">
+  <div class="pulse"></div>
+  <span id="statusText">Acquiring GPS&hellip;</span>
+</div>
+
+<div class="unit-toggle">
+  <button id="btnYards" class="active" onclick="setUnit('yards')">Yards</button>
+  <button id="btnFeet" onclick="setUnit('feet')">Feet</button>
+  <button id="btnMeters" onclick="setUnit('meters')">Meters</button>
+</div>
+
+<div class="compass-section" id="nearestSection" style="display:none;">
+  <h3>Nearest Hole</h3>
+  <div class="nearest-info">
+    <div>
+      <div class="nearest-big-distance" id="nearestDistance">--</div>
+      <div class="nearest-big-unit" id="nearestUnit">yards to hole</div>
+    </div>
+    <div class="arrow-indicator" id="arrowIndicator">
+      <span id="nearestHoleNum">#-</span>
+    </div>
+  </div>
+</div>
+
+<div class="holes-grid" id="holesGrid"></div>
+
+<div class="accuracy-info" id="accuracyInfo"></div>
+
+<footer>Built live with AI at Wharton Rotary Hackathon</footer>
+
+<script>
+// Wharton Country Club - 9 hole course
+// Green (pin) positions estimated from satellite imagery
+// Course center: 29.306, -96.067
+const HOLES = [
+  { num: 1, par: 4, yards: 365, lat: 29.30725, lng: -96.06520 },
+  { num: 2, par: 4, yards: 340, lat: 29.30830, lng: -96.06610 },
+  { num: 3, par: 3, yards: 165, lat: 29.30880, lng: -96.06750 },
+  { num: 4, par: 5, yards: 490, lat: 29.30780, lng: -96.06900 },
+  { num: 5, par: 4, yards: 380, lat: 29.30620, lng: -96.06950 },
+  { num: 6, par: 4, yards: 350, lat: 29.30500, lng: -96.06830 },
+  { num: 7, par: 3, yards: 155, lat: 29.30450, lng: -96.06680 },
+  { num: 8, par: 5, yards: 510, lat: 29.30550, lng: -96.06520 },
+  { num: 9, par: 4, yards: 370, lat: 29.30650, lng: -96.06600 }
+];
+
+let currentUnit = 'yards';
+let userLat = null;
+let userLng = null;
+let watchId = null;
+
+function setUnit(unit) {
+  currentUnit = unit;
+  document.getElementById('btnYards').classList.toggle('active', unit === 'yards');
+  document.getElementById('btnFeet').classList.toggle('active', unit === 'feet');
+  document.getElementById('btnMeters').classList.toggle('active', unit === 'meters');
+  if (userLat !== null) updateDistances();
+}
+
+function haversineMeters(lat1, lng1, lat2, lng2) {
+  const R = 6371000;
+  const toRad = d => d * Math.PI / 180;
+  const dLat = toRad(lat2 - lat1);
+  const dLng = toRad(lng2 - lng1);
+  const a = Math.sin(dLat/2)**2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+function bearingDeg(lat1, lng1, lat2, lng2) {
+  const toRad = d => d * Math.PI / 180;
+  const dLng = toRad(lng2 - lng1);
+  const y = Math.sin(dLng) * Math.cos(toRad(lat2));
+  const x = Math.cos(toRad(lat1)) * Math.sin(toRad(lat2)) -
+            Math.sin(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.cos(dLng);
+  return ((Math.atan2(y, x) * 180 / Math.PI) + 360) % 360;
+}
+
+function convertDistance(meters) {
+  if (currentUnit === 'meters') return Math.round(meters);
+  if (currentUnit === 'feet') return Math.round(meters * 3.28084);
+  return Math.round(meters * 1.09361); // yards
+}
+
+function unitLabel() {
+  if (currentUnit === 'meters') return 'm';
+  if (currentUnit === 'feet') return 'ft';
+  return 'yds';
+}
+
+function buildGrid() {
+  const grid = document.getElementById('holesGrid');
+  grid.innerHTML = HOLES.map(h => `
+    <div class="hole-card" id="hole-${h.num}">
+      <div class="hole-number">${h.num}</div>
+      <div class="hole-par">Par ${h.par}</div>
+      <div class="hole-distance" id="dist-${h.num}">--</div>
+      <div class="hole-unit" id="unit-${h.num}">${unitLabel()}</div>
+      <div class="hole-yardage">${h.yards} yds total</div>
+    </div>
+  `).join('');
+}
+
+function updateDistances() {
+  let nearestDist = Infinity;
+  let nearestHole = null;
+
+  HOLES.forEach(h => {
+    const meters = haversineMeters(userLat, userLng, h.lat, h.lng);
+    const dist = convertDistance(meters);
+
+    document.getElementById(`dist-${h.num}`).textContent = dist.toLocaleString();
+    document.getElementById(`unit-${h.num}`).textContent = unitLabel();
+    document.getElementById(`hole-${h.num}`).classList.remove('nearest');
+
+    if (meters < nearestDist) {
+      nearestDist = meters;
+      nearestHole = h;
+    }
+  });
+
+  if (nearestHole) {
+    document.getElementById(`hole-${nearestHole.num}`).classList.add('nearest');
+
+    const section = document.getElementById('nearestSection');
+    section.style.display = 'block';
+    document.getElementById('nearestDistance').textContent = convertDistance(nearestDist).toLocaleString();
+    document.getElementById('nearestUnit').textContent = unitLabel() + ' to hole ' + nearestHole.num;
+    document.getElementById('nearestHoleNum').textContent = '#' + nearestHole.num;
+
+    // Show nearest label
+    const card = document.getElementById(`hole-${nearestHole.num}`);
+    let label = card.querySelector('.nearest-label');
+    document.querySelectorAll('.nearest-label').forEach(el => el.remove());
+    if (!label) {
+      label = document.createElement('div');
+      label.className = 'nearest-label';
+      label.textContent = 'Nearest';
+      card.appendChild(label);
+    }
+  }
+}
+
+function onPosition(pos) {
+  userLat = pos.coords.latitude;
+  userLng = pos.coords.longitude;
+
+  const accuracy = Math.round(pos.coords.accuracy);
+  const statusBar = document.getElementById('statusBar');
+  statusBar.className = 'status-bar success';
+  document.getElementById('statusText').textContent = `GPS Active \u2014 Accuracy: \u00b1${accuracy}m`;
+  document.getElementById('accuracyInfo').textContent =
+    `Your position: ${userLat.toFixed(6)}, ${userLng.toFixed(6)} | Updated: ${new Date().toLocaleTimeString()}`;
+
+  document.getElementById('loadingScreen').classList.add('hidden');
+  updateDistances();
+}
+
+function onError(err) {
+  const statusBar = document.getElementById('statusBar');
+  statusBar.className = 'status-bar error';
+  let msg = 'Unable to get location';
+  if (err.code === 1) msg = 'Location access denied \u2014 please enable in settings';
+  else if (err.code === 2) msg = 'Location unavailable';
+  else if (err.code === 3) msg = 'Location request timed out';
+  document.getElementById('statusText').textContent = msg;
+  document.getElementById('loadingScreen').classList.add('hidden');
+}
+
+function init() {
+  buildGrid();
+  if (!navigator.geolocation) {
+    document.getElementById('statusText').textContent = 'Geolocation not supported by this browser';
+    document.getElementById('statusBar').className = 'status-bar error';
+    document.getElementById('loadingScreen').classList.add('hidden');
+    return;
+  }
+  watchId = navigator.geolocation.watchPosition(onPosition, onError, {
+    enableHighAccuracy: true,
+    maximumAge: 5000,
+    timeout: 15000
+  });
+}
+
+init();
+</script>
+</body>
+</html>
