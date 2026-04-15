@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>ATM Finder — Global Travelers</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:#f4f6fa;color:#222;min-height:100vh;padding-bottom:80px}
+  header{background:#003366;color:#fff;padding:18px 16px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,.15)}
+  header h1{font-size:20px;font-weight:700}
+  header p{font-size:12px;opacity:.85;margin-top:4px}
+  .container{max-width:560px;margin:0 auto;padding:16px}
+  .card{background:#fff;border-radius:14px;padding:18px;margin-bottom:14px;box-shadow:0 2px 10px rgba(0,0,0,.06)}
+  .card h2{font-size:14px;color:#003366;text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px}
+  label{display:block;font-size:13px;color:#555;margin-bottom:6px;font-weight:600}
+  select,input{width:100%;padding:14px;border:2px solid #e1e6ef;border-radius:10px;font-size:16px;background:#fff;-webkit-appearance:none;appearance:none}
+  select:focus,input:focus{outline:none;border-color:#F7A81B}
+  .selectwrap{position:relative}
+  .selectwrap::after{content:"▼";position:absolute;right:16px;top:50%;transform:translateY(-50%);color:#003366;font-size:12px;pointer-events:none}
+  button{width:100%;background:#F7A81B;color:#003366;border:none;padding:16px;border-radius:10px;font-size:17px;font-weight:700;cursor:pointer;margin-top:6px}
+  button:active{transform:scale(.98)}
+  button.secondary{background:#003366;color:#fff;margin-top:10px}
+  .atm{border-left:4px solid #F7A81B;padding:12px 14px;background:#fafbfd;border-radius:8px;margin-bottom:10px}
+  .atm h3{font-size:16px;color:#003366;margin-bottom:4px}
+  .atm .meta{font-size:13px;color:#555;line-height:1.5}
+  .badge{display:inline-block;padding:3px 8px;border-radius:12px;font-size:11px;font-weight:600;margin-right:4px;margin-top:4px}
+  .b-safe{background:#d4edda;color:#155724}
+  .b-fee{background:#fff3cd;color:#856404}
+  .b-net{background:#cce5ff;color:#004085}
+  .tip{background:#fff8e1;border-left:4px solid #F7A81B;padding:12px;border-radius:8px;font-size:14px;line-height:1.5;margin-bottom:10px}
+  .tip strong{color:#003366}
+  .currency{font-size:24px;font-weight:700;color:#003366;text-align:center;padding:10px 0}
+  .currency small{font-size:13px;color:#666;font-weight:400;display:block;margin-top:4px}
+  .row{display:flex;gap:10px}
+  .row>*{flex:1}
+  footer{text-align:center;font-size:11px;color:#888;padding:20px 16px;margin-top:20px}
+  .hidden{display:none}
+  .warn{background:#f8d7da;color:#721c24;padding:10px;border-radius:8px;font-size:13px;margin-top:8px}
+</style>
+</head>
+<body>
+<header>
+  <h1>🏧 Global ATM Finder</h1>
+  <p>Smart cash for first-time travelers</p>
+</header>
+
+<div class="container">
+  <div class="card">
+    <h2>Where are you going?</h2>
+    <label>Country</label>
+    <div class="selectwrap">
+      <select id="country"></select>
+    </div>
+    <button onclick="findATMs()">Find Safe ATMs</button>
+  </div>
+
+  <div id="results" class="hidden">
+    <div class="card">
+      <h2>💱 Currency</h2>
+      <div class="currency" id="curInfo"></div>
+      <label>Convert from USD</label>
+      <div class="row">
+        <input type="number" id="usdAmt" placeholder="100" oninput="convert()">
+        <input type="text" id="localAmt" readonly placeholder="Local">
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>🏧 Recommended ATMs</h2>
+      <div id="atmList"></div>
+    </div>
+
+    <div class="card">
+      <h2>💡 Smart Traveler Tips</h2>
+      <div id="tips"></div>
+    </div>
+  </div>
+</div>
+
+<footer>Built live with AI at Wharton Rotary Hackathon</footer>
+
+<script>
+const data = {
+  "Japan":{cur:"JPY",sym:"¥",rate:155,banks:[
+    {n:"7-Eleven / 7Bank ATM",loc:"Inside every 7-Eleven (24/7)",fee:"~¥220",safe:"Very Safe",net:"PLUS, Cirrus, Visa, MC"},
+    {n:"Japan Post Bank ATM",loc:"Post offices nationwide",fee:"~¥110-220",safe:"Very Safe",net:"PLUS, Cirrus, Visa, MC"},
+    {n:"AEON Bank ATM",loc:"AEON malls & supermarkets",fee:"Free off-hours varies",safe:"Very Safe",net:"PLUS, Cirrus, Visa"}
+  ],tips:["Many Japanese ATMs reject foreign cards — stick to 7-Eleven or Japan Post.","Japan is still largely cash-based. Carry yen for restaurants & temples.","ATMs at smaller banks may close at night."]},
+  "United Kingdom":{cur:"GBP",sym:"£",rate:0.79,banks:[
+    {n:"Barclays ATM",loc:"Bank branches & high streets",fee:"Free",safe:"Very Safe",net:"Visa, MC, PLUS"},
+    {n:"HSBC ATM",loc:"Bank branches",fee:"Free",safe:"Very Safe",net:"Global Alliance free for BofA"},
+    {n:"LINK Network",loc:"Most UK ATMs",fee:"Usually free",safe:"Safe",net:"All major networks"}
+  ],tips:["Avoid 'Cashzone' or 'Your Cash' independent ATMs — they charge £1.99+.","Always select 'charge in GBP' (decline DCC) for best rate.","Contactless cards work everywhere — even on the Tube."]},
+  "France":{cur:"EUR",sym:"€",rate:0.92,banks:[
+    {n:"BNP Paribas ATM",loc:"Bank branches citywide",fee:"Free (your bank may charge)",safe:"Very Safe",net:"Global Alliance"},
+    {n:"Crédit Agricole",loc:"Major streets & towns",fee:"Free at branch",safe:"Very Safe",net:"Visa, MC, PLUS"},
+    {n:"La Banque Postale",loc:"Post offices",fee:"Low",safe:"Very Safe",net:"PLUS, Cirrus"}
+  ],tips:["Avoid Euronet (yellow & blue) ATMs — terrible exchange rates.","Always decline 'conversion to your home currency' (DCC).","Use ATMs attached to actual bank branches in daylight."]},
+  "Mexico":{cur:"MXN",sym:"$",rate:17.2,banks:[
+    {n:"BBVA Bancomer",loc:"Inside bank branches",fee:"~$30 MXN",safe:"Very Safe",net:"PLUS, Visa, MC"},
+    {n:"Santander",loc:"Bank branches & malls",fee:"~$35 MXN",safe:"Very Safe",net:"Global Alliance"},
+    {n:"Banorte",loc:"Branches & airports",fee:"~$30 MXN",safe:"Safe",net:"PLUS, Cirrus"}
+  ],tips:["NEVER use street/standalone ATMs — skimmer risk is high.","Use ATMs inside bank lobbies during business hours.","Decline DCC — always charge in pesos."]},
+  "Thailand":{cur:"THB",sym:"฿",rate:36,banks:[
+    {n:"Bangkok Bank ATM",loc:"Branches & 7-Elevens",fee:"220 THB foreign card fee",safe:"Safe",net:"PLUS, Cirrus, Visa"},
+    {n:"Krungsri (Bank of Ayudhya)",loc:"Branches",fee:"220 THB",safe:"Safe",net:"All major"},
+    {n:"AEON Thailand ATM",loc:"Big C, malls",fee:"Often LOWEST or free",safe:"Safe",net:"Visa, PLUS"}
+  ],tips:["AEON ATMs typically have the lowest foreign card fees.","All Thai ATMs charge a flat 220 THB fee — withdraw larger amounts less often.","Notify your bank before traveling to Thailand."]},
+  "Italy":{cur:"EUR",sym:"€",rate:0.92,banks:[
+    {n:"Intesa Sanpaolo (Bancomat)",loc:"Bank branches",fee:"Free at branch",safe:"Very Safe",net:"Visa, MC, PLUS"},
+    {n:"UniCredit ATM",loc:"Major cities",fee:"Free",safe:"Very Safe",net:"Global Alliance"},
+    {n:"BPER Banca",loc:"Branches",fee:"Low",safe:"Very Safe",net:"PLUS, Cirrus"}
+  ],tips:["Look for 'Bancomat' signs — that's the Italian ATM network.","Avoid Euronet kiosks at tourist spots.","Many small shops in Italy still prefer cash."]},
+  "Germany":{cur:"EUR",sym:"€",rate:0.92,banks:[
+    {n:"Deutsche Bank ATM",loc:"Branches nationwide",fee:"Free for BofA / Global Alliance",safe:"Very Safe",net:"Visa, MC"},
+    {n:"Commerzbank",loc:"City centers",fee:"Free at branch",safe:"Very Safe",net:"PLUS, Cirrus"},
+    {n:"Sparkasse ATM",loc:"Everywhere",fee:"~€5 foreign card",safe:"Very Safe",net:"All major"}
+  ],tips:["Germany is cash-heavy — many places don't take cards.","Bank of America customers withdraw FREE at Deutsche Bank.","Decline DCC always."]},
+  "Spain":{cur:"EUR",sym:"€",rate:0.92,banks:[
+    {n:"Santander ATM",loc:"Citywide",fee:"Free for BofA",safe:"Very Safe",net:"Global Alliance"},
+    {n:"BBVA",loc:"Branches",fee:"Low",safe:"Very Safe",net:"Visa, MC, PLUS"},
+    {n:"CaixaBank",loc:"Everywhere",fee:"Varies",safe:"Very Safe",net:"PLUS, Cirrus"}
+  ],tips:["Avoid Euronet — they're tourist traps.","Many ATMs ask if you want to choose your own rate — say YES (decline DCC).","Use ATMs inside bank vestibules at night."]},
+  "Costa Rica":{cur:"CRC",sym:"₡",rate:510,banks:[
+    {n:"Banco Nacional",loc:"Branches & airports",fee:"~$3 USD",safe:"Very Safe",net:"PLUS, Visa"},
+    {n:"BAC Credomatic",loc:"Malls & cities",fee:"~$3-5",safe:"Safe",net:"Visa, MC"},
+    {n:"Scotiabank",loc:"Major towns",fee:"Low",safe:"Safe",net:"Global Alliance"}
+  ],tips:["Most ATMs dispense BOTH colones and USD — choose colones for better value.","Use ATMs inside banks or malls, never on the street.","USD is widely accepted — but you'll get change in colones."]},
+  "Australia":{cur:"AUD",sym:"$",rate:1.52,banks:[
+    {n:"Commonwealth Bank ATM",loc:"Everywhere",fee:"Free at CBA",safe:"Very Safe",net:"Visa, MC, PLUS"},
+    {n:"Westpac",loc:"Cities & towns",fee:"Free at Westpac",safe:"Very Safe",net:"Global Alliance"},
+    {n:"ANZ",loc:"Branches",fee:"Free at ANZ",safe:"Very Safe",net:"PLUS, Cirrus"}
+  ],tips:["The 'Big 4' banks (CBA, Westpac, ANZ, NAB) don't charge ATM fees.","Avoid pubs & convenience store ATMs — high fees.","Tap-to-pay is universal in Australia."]}
+};
+
+const sel = document.getElementById('country');
+Object.keys(data).sort().forEach(c=>{
+  const o=document.createElement('option');o.value=c;o.textContent=c;sel.appendChild(o);
+});
+
+let currentCountry = null;
+
+function findATMs(){
+  const c = sel.value;
+  currentCountry = data[c];
+  const d = currentCountry;
+  document.getElementById('results').classList.remove('hidden');
+  document.getElementById('curInfo').innerHTML = `${d.sym} ${d.cur} <small>1 USD ≈ ${d.sym}${d.rate.toLocaleString()} ${d.cur}</small>`;
+  document.getElementById('usdAmt').value = 100;
+  convert();
+
+  const list = d.banks.map(b=>`
+    <div class="atm">
+      <h3>${b.n}</h3>
+      <div class="meta">📍 ${b.loc}<br>💵 Fee: ${b.fee}</div>
+      <span class="badge b-safe">${b.safe}</span>
+      <span class="badge b-fee">${b.fee.includes('Free')?'No Fee':'Has Fee'}</span>
+      <span class="badge b-net">${b.net}</span>
+    </div>`).join('');
+  document.getElementById('atmList').innerHTML = list;
+
+  document.getElementById('tips').innerHTML = d.tips.map(t=>`<div class="tip">⚠️ ${t}</div>`).join('') +
+    `<div class="tip"><strong>Universal rules:</strong> Always decline "Dynamic Currency Conversion" (DCC). Notify your bank before travel. Cover the keypad. Use ATMs in daylight at bank branches.</div>`;
+
+  document.getElementById('results').scrollIntoView({behavior:'smooth'});
+}
+
+function convert(){
+  if(!currentCountry)return;
+  const usd = parseFloat(document.getElementById('usdAmt').value)||0;
+  const local = usd * currentCountry.rate;
+  document.getElementById('localAmt').value = currentCountry.sym + local.toLocaleString(undefined,{maximumFractionDigits:0}) + ' ' + currentCountry.cur;
+}
+</script>
+</body>
+</html>
