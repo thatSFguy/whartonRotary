@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gift Tracker for Nieces & Nephews</title>
+<style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    margin: 0; padding: 0;
+    background: #f4f6fa;
+    color: #222;
+  }
+  header {
+    background: #003366; color: #fff;
+    padding: 18px 16px; text-align: center;
+  }
+  header h1 { margin: 0; font-size: 20px; }
+  header .sub { font-size: 12px; opacity: 0.85; margin-top: 4px; }
+  main { padding: 16px; max-width: 640px; margin: 0 auto; }
+  .card {
+    background: #fff; border-radius: 12px;
+    padding: 16px; margin-bottom: 14px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  }
+  h2 { font-size: 16px; color: #003366; margin: 0 0 10px; }
+  label { font-size: 13px; font-weight: 600; display: block; margin: 8px 0 4px; color: #555; }
+  input, select, textarea {
+    width: 100%; padding: 10px; font-size: 15px;
+    border: 1px solid #d0d5dd; border-radius: 8px;
+    background: #fff; font-family: inherit;
+  }
+  input:focus, select:focus, textarea:focus { outline: 2px solid #F7A81B; border-color: #F7A81B; }
+  button {
+    background: #003366; color: #fff; border: none;
+    padding: 12px 16px; font-size: 15px; font-weight: 600;
+    border-radius: 8px; cursor: pointer; width: 100%;
+    margin-top: 10px;
+  }
+  button.gold { background: #F7A81B; color: #003366; }
+  button.ghost { background: transparent; color: #003366; border: 1px solid #003366; }
+  button.danger { background: #c0392b; }
+  .row { display: flex; gap: 8px; }
+  .row > * { flex: 1; }
+  .kid {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 12px; border-radius: 10px; background: #f7f9fc;
+    margin-bottom: 8px; cursor: pointer;
+    border: 1px solid transparent;
+  }
+  .kid:hover { border-color: #F7A81B; }
+  .kid .name { font-weight: 600; color: #003366; }
+  .kid .meta { font-size: 12px; color: #666; margin-top: 2px; }
+  .kid .bday { font-size: 12px; color: #F7A81B; font-weight: 600; }
+  .gift-row {
+    display: flex; justify-content: space-between;
+    padding: 10px; background: #f7f9fc; border-radius: 8px;
+    margin-bottom: 6px; font-size: 14px;
+  }
+  .gift-row .year { font-weight: 700; color: #003366; }
+  .gift-row .desc { flex: 1; margin: 0 10px; }
+  .gift-row button {
+    width: auto; padding: 4px 10px; font-size: 12px;
+    margin: 0; background: #eee; color: #c0392b;
+  }
+  .suggestion {
+    background: #fff8e6; border-left: 4px solid #F7A81B;
+    padding: 12px; border-radius: 8px; margin: 8px 0;
+    font-size: 14px;
+  }
+  .badge {
+    display: inline-block; background: #F7A81B; color: #003366;
+    font-size: 11px; font-weight: 700; padding: 2px 8px;
+    border-radius: 10px; margin-left: 6px;
+  }
+  .empty { text-align: center; color: #888; font-size: 14px; padding: 20px; }
+  .back { background: none; color: #003366; width: auto; padding: 6px 0; margin: 0 0 8px; text-align: left; font-weight: 600; }
+  footer {
+    text-align: center; font-size: 11px; color: #888;
+    padding: 20px 10px 30px;
+  }
+  .upcoming {
+    background: linear-gradient(135deg, #003366, #004d99);
+    color: #fff; padding: 14px; border-radius: 10px;
+    margin-bottom: 10px;
+  }
+  .upcoming .days { font-size: 12px; color: #F7A81B; font-weight: 700; }
+  .upcoming .name { font-size: 16px; font-weight: 700; margin-top: 2px; }
+  .tag { display: inline-block; background: #eef2f7; color: #555; padding: 3px 8px; border-radius: 6px; font-size: 11px; margin: 2px 4px 2px 0; }
+</style>
+</head>
+<body>
+<header>
+  <h1>🎁 Gift Tracker</h1>
+  <div class="sub">Nieces & Nephews — never repeat a birthday gift</div>
+</header>
+
+<main id="app"></main>
+
+<footer>Built live with AI at Wharton Rotary Hackathon</footer>
+
+<script>
+const STORAGE_KEY = 'giftTracker_v1';
+const IDEAS = [
+  "LEGO set","Art supplies kit","Board game","Puzzle (age-appropriate)","Book series starter",
+  "Science experiment kit","Remote-control car","Stuffed animal","Craft kit","Jigsaw puzzle",
+  "Kids' smartwatch","Roller skates","Scooter","Bicycle accessories","Sports ball + gear",
+  "Drawing tablet","Musical instrument (beginner)","Cooking/baking kit","Gardening kit","Telescope",
+  "Microscope","Building blocks","Dollhouse","Action figures","Trading card game starter",
+  "Journal + fancy pens","Book gift card","Bookstore gift card","Movie theater gift card","Ice cream shop gift card",
+  "Amusement park tickets","Museum membership","Zoo membership","Experience: pottery class","Experience: cooking class",
+  "Experience: rock climbing","Experience: trampoline park","Camping gear","Hiking backpack","Flashlight + compass",
+  "Polaroid-style camera","Headphones","Bluetooth speaker","Karaoke microphone","Night light projector",
+  "Bean bag chair","Desk organizer","Cozy blanket","Plush robe","Fuzzy socks set",
+  "Lava lamp","Fairy lights for bedroom","Puzzle box / brain teaser","Rubik's cube","Magic kit",
+  "Chess set","Origami kit","Knitting/crochet starter","Friendship bracelet kit","Jewelry making kit",
+  "Sketchbook + pencil set","Watercolor paint set","Clay / air-dry sculpting kit","Play kitchen accessories","Toy cash register",
+  "Astronaut helmet","Dinosaur excavation kit","Ant farm","Butterfly garden","Crystal growing kit",
+  "Coding toy (Osmo/robot)","Kids' tablet case + stylus","Subscription: KiwiCo crate","Subscription: magazine","Subscription: book-of-the-month",
+  "Personalized name puzzle","Custom storybook","Photo album of memories","Scrapbook kit","Family recipe book",
+  "Piggy bank + starter money","Savings bond","Ticket to a sports game","Ticket to a concert","Broadway/theater ticket",
+  "Winter: sled","Winter: ice skates","Summer: water gun","Summer: pool float","Summer: beach kit",
+  "Skateboard","Pogo stick","Hula hoop set","Jump rope","Frisbee golf set",
+  "Nerf blaster","Archery set (foam)","Fishing pole (beginner)","Binoculars","Bug catching kit",
+  "Journaling subscription","Learn-a-language app gift card","Online art class","Music lesson gift card","Tutoring gift card"
+];
+
+let state = load();
+
+function load() {
+  try {
+    return JSON.parse(localStorage.getItem(STORAGE_KEY)) || { kids: [] };
+  } catch(e) { return { kids: [] }; }
+}
+function save() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
+
+function daysUntilBirthday(bday) {
+  if (!bday) return null;
+  const [y,m,d] = bday.split('-').map(Number);
+  const today = new Date();
+  today.setHours(0,0,0,0);
+  let next = new Date(today.getFullYear(), m-1, d);
+  if (next < today) next = new Date(today.getFullYear()+1, m-1, d);
+  return Math.round((next - today) / 86400000);
+}
+
+function ageThisYear(bday) {
+  if (!bday) return null;
+  const [y,m,d] = bday.split('-').map(Number);
+  const today = new Date();
+  let age = today.getFullYear() - y;
+  const hadBday = (today.getMonth()+1 > m) || (today.getMonth()+1 === m && today.getDate() >= d);
+  return hadBday ? age : age - 1;
+}
+
+function suggestGift(kid) {
+  const used = new Set((kid.gifts || []).map(g => g.idea.toLowerCase().trim()));
+  const available = IDEAS.filter(i => !used.has(i.toLowerCase().trim()));
+  if (available.length === 0) return null;
+  const seed = (kid.name + new Date().getFullYear()).split('').reduce((a,c)=>a+c.charCodeAt(0),0);
+  return available[seed % available.length];
+}
+
+let view = { screen: 'list', kidId: null };
+
+function render() {
+  const root = document.getElementById('app');
+  if (view.screen === 'list') root.innerHTML = renderList();
+  else if (view.screen === 'add') root.innerHTML = renderAdd();
+  else if (view.screen === 'kid') root.innerHTML = renderKid();
+  attachHandlers();
+}
+
+function renderList() {
+  const kids = state.kids.slice().sort((a,b) => {
+    const da = daysUntilBirthday(a.birthday) ?? 999;
+    const db = daysUntilBirthday(b.birthday) ?? 999;
+    return da - db;
+  });
+
+  const upcoming = kids.filter(k => {
+    const d = daysUntilBirthday(k.birthday);
+    return d !== null && d <= 60;
+  });
+
+  let html = '';
+  if (upcoming.length) {
+    html += `<div class="card"><h2>🎂 Coming Up</h2>`;
+    upcoming.forEach(k => {
+      const d = daysUntilBirthday(k.birthday);
+      const label = d === 0 ? 'TODAY!' : d === 1 ? 'Tomorrow' : `in ${d} days`;
+      html += `<div class="upcoming" data-kid="${k.id}">
+        <div class="days">BIRTHDAY ${label.toUpperCase()}</div>
+        <div class="name">${esc(k.name)} turns ${ageThisYear(k.birthday)+1}</div>
+      </div>`;
+    });
+    html += `</div>`;
+  }
+
+  html += `<div class="card"><h2>Your Nieces & Nephews</h2>`;
+  if (kids.length === 0) {
+    html += `<div class="empty">No one added yet.<br>Tap below to add your first niece or nephew.</div>`;
+  } else {
+    kids.forEach(k => {
+      const d = daysUntilBirthday(k.birthday);
+      const age = ageThisYear(k.birthday);
+      const count = (k.gifts || []).length;
+      html += `<div class="kid" data-kid="${k.id}">
+        <div>
+          <div class="name">${esc(k.name)}${k.relation ? ' <span class="tag">'+esc(k.relation)+'</span>' : ''}</div>
+          <div class="meta">${age !== null ? 'Age '+age+' • ' : ''}${count} gift${count===1?'':'s'} logged</div>
+        </div>
+        <div class="bday">${d !== null ? (d===0?'🎉 TODAY':d+'d') : ''}</div>
+      </div>`;
+    });
+  }
+  html += `<button class="gold" id="addBtn">+ Add Niece or Nephew</button></div>`;
+  return html;
+}
+
+function renderAdd() {
+  return `<button class="back" id="back">← Back</button>
+    <div class="card">
+      <h2>Add Niece or Nephew</h2>
+      <label>Name</label>
+      <input id="f-name" placeholder="e.g. Emma">
+      <label>Birthday</label>
+      <input id="f-bday" type="date">
+      <label>Relationship (optional)</label>
+      <input id="f-rel" placeholder="e.g. Niece, Nephew">
+      <label>Interests / Notes (optional)</label>
+      <textarea id="f-notes" rows="2" placeholder="Loves dinosaurs, art, soccer..."></textarea>
+      <button class="gold" id="saveKid">Save</button>
+    </div>`;
+}
+
+function renderKid() {
+  const kid = state.kids.find(k => k.id === view.kidId);
+  if (!kid) { view.screen = 'list'; return renderList(); }
+  const gifts = (kid.gifts || []).slice().sort((a,b) => b.year - a.year);
+  const suggestion = suggestGift(kid);
+  const d = daysUntilBirthday(kid.birthday);
+  const age = ageThisYear(kid.birthday);
+
+  let html = `<button class="back" id="back">← Back</button>
+    <div class="card">
+      <h2>${esc(kid.name)}</h2>
+      <div style="font-size:13px;color:#666">
+        ${kid.relation ? esc(kid.relation)+' • ' : ''}
+        ${kid.birthday ? 'Born '+kid.birthday : ''}
+        ${age !== null ? ' • Age '+age : ''}
+      </div>
+      ${kid.notes ? `<div style="margin-top:8px;font-size:13px;color:#555">📝 ${esc(kid.notes)}</div>` : ''}
+      ${d !== null ? `<div style="margin-top:10px;color:#F7A81B;font-weight:600">🎂 Next birthday: ${d===0?'TODAY!':'in '+d+' days'}</div>` : ''}
+    </div>
+
+    <div class="card">
+      <h2>💡 Gift Suggestion <span class="badge">NEW</span></h2>
+      ${suggestion
+        ? `<div class="suggestion"><strong>${esc(suggestion)}</strong><br><span style="font-size:12px;color:#666">Not given to ${esc(kid.name)} before.</span></div>
+           <div class="row">
+             <button class="gold" id="useSuggestion">Use This</button>
+             <button class="ghost" id="reshuffle">Try Another</button>
+           </div>`
+        : `<div class="empty">You've logged every idea we have for ${esc(kid.name)}! Add your own below.</div>`}
+    </div>
+
+    <div class="card">
+      <h2>Log a Gift</h2>
+      <label>Year</label>
+      <input id="g-year" type="number" value="${new Date().getFullYear()}">
+      <label>Occasion</label>
+      <select id="g-occ">
+        <option>Birthday</option><option>Christmas</option><option>Hanukkah</option>
+        <option>Graduation</option><option>Just Because</option><option>Other</option>
+      </select>
+      <label>Gift</label>
+      <input id="g-idea" placeholder="What did you give?">
+      <button class="gold" id="addGift">Add Gift</button>
+    </div>
+
+    <div class="card">
+      <h2>Gift History (${gifts.length})</h2>
+      ${gifts.length === 0 ? '<div class="empty">No gifts logged yet.</div>' :
+        gifts.map(g => `<div class="gift-row">
+          <span class="year">${g.year}</span>
+          <span class="desc"><strong>${esc(g.idea)}</strong><br><span style="font-size:11px;color:#888">${esc(g.occasion||'')}</span></span>
+          <button data-rm="${g.id}">✕</button>
+        </div>`).join('')}
+    </div>
+
+    <div class="card">
+      <button class="danger" id="delKid">Delete ${esc(kid.name)}</button>
+    </div>`;
+  return html;
+}
+
+function esc(s) { return String(s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+function attachHandlers() {
+  const $ = id => document.getElementById(id);
+
+  document.querySelectorAll('.kid, .upcoming').forEach(el => {
+    el.onclick = () => { view = { screen: 'kid', kidId: el.dataset.kid }; render(); };
+  });
+
+  if ($('addBtn')) $('addBtn').onclick = () => { view.screen = 'add'; render(); };
+  if ($('back')) $('back').onclick = () => { view = { screen: 'list' }; render(); };
+
+  if ($('saveKid')) $('saveKid').onclick = () => {
+    const name = $('f-name').value.trim();
+    if (!name) { alert('Name is required'); return; }
+    state.kids.push({
+      id: uid(), name,
+      birthday: $('f-bday').value,
+      relation: $('f-rel').value.trim(),
+      notes: $('f-notes').value.trim(),
+      gifts: []
+    });
+    save();
+    view = { screen: 'list' };
+    render();
+  };
+
+  if ($('addGift')) $('addGift').onclick = () => {
+    const kid = state.kids.find(k => k.id === view.kidId);
+    const idea = $('g-idea').value.trim();
+    if (!idea) { alert('Enter a gift'); return; }
+    kid.gifts = kid.gifts || [];
+    kid.gifts.push({
+      id: uid(),
+      year: parseInt($('g-year').value) || new Date().getFullYear(),
+      occasion: $('g-occ').value,
+      idea
+    });
+    save(); render();
+  };
+
+  if ($('useSuggestion')) $('useSuggestion').onclick = () => {
+    const kid = state.kids.find(k => k.id === view.kidId);
+    const s = suggestGift(kid);
+    if (s) $('g-idea').value = s;
+  };
+
+  if ($('reshuffle')) $('reshuffle').onclick = () => {
+    const kid = state.kids.find(k => k.id === view.kidId);
+    // temporarily add a fake gift to rotate suggestion
+    const s = suggestGift(kid);
+    if (!s) return;
+    // just re-render with a different seed by appending a marker to name temporarily? simpler: shuffle IDEAS view
+    const used = new Set((kid.gifts || []).map(g => g.idea.toLowerCase().trim()));
+    const available = IDEAS.filter(i => !used.has(i.toLowerCase().trim()));
+    const pick = available[Math.floor(Math.random() * available.length)];
+    document.querySelector('.suggestion strong').textContent = pick;
+    $('useSuggestion').onclick = () => { $('g-idea').value = pick; };
+  };
+
+  document.querySelectorAll('[data-rm]').forEach(b => {
+    b.onclick = () => {
+      const kid = state.kids.find(k => k.id === view.kidId);
+      kid.gifts = kid.gifts.filter(g => g.id !== b.dataset.rm);
+      save(); render();
+    };
+  });
+
+  if ($('delKid')) $('delKid').onclick = () => {
+    const kid = state.kids.find(k => k.id === view.kidId);
+    if (confirm('Delete '+kid.name+' and all gift history?')) {
+      state.kids = state.kids.filter(k => k.id !== view.kidId);
+      save();
+      view = { screen: 'list' };
+      render();
+    }
+  };
+}
+
+render();
+</script>
+</body>
+</html>
