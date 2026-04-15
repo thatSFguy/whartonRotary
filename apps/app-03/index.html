@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+<title>Estate Planning Walkthrough</title>
+<style>
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:#f4f6f9;color:#1a1a1a;line-height:1.5}
+  .app{max-width:560px;margin:0 auto;min-height:100vh;background:#fff;display:flex;flex-direction:column}
+  header{background:#003366;color:#fff;padding:18px 20px;position:sticky;top:0;z-index:10}
+  header h1{margin:0;font-size:18px;font-weight:600}
+  header p{margin:4px 0 0;font-size:13px;opacity:.85}
+  .progress{height:5px;background:rgba(255,255,255,.2);margin-top:12px;border-radius:3px;overflow:hidden}
+  .progress > div{height:100%;background:#F7A81B;transition:width .3s}
+  main{flex:1;padding:22px 20px 100px}
+  h2{color:#003366;font-size:22px;margin:0 0 6px}
+  .lead{color:#555;font-size:14px;margin:0 0 18px}
+  .choices{display:grid;gap:10px;margin:18px 0}
+  .choice{display:block;padding:16px;background:#fff;border:2px solid #d8dde6;border-radius:10px;font-size:16px;font-weight:500;text-align:left;cursor:pointer;transition:all .15s}
+  .choice:hover{border-color:#003366}
+  .choice.sel{border-color:#003366;background:#eaf1fa}
+  .doc{background:#fff;border:1px solid #e2e6ee;border-radius:10px;padding:14px 16px;margin:10px 0;border-left:4px solid #F7A81B}
+  .doc h3{margin:0 0 4px;color:#003366;font-size:15px}
+  .doc p{margin:0;font-size:13px;color:#444}
+  .doc.priority{border-left-color:#c0392b}
+  .doc .tag{display:inline-block;font-size:10px;font-weight:700;background:#003366;color:#fff;padding:2px 7px;border-radius:10px;margin-left:6px;vertical-align:middle;letter-spacing:.5px}
+  .doc.priority .tag{background:#c0392b}
+  .check{display:flex;align-items:flex-start;gap:10px;padding:12px;background:#f8fafc;border-radius:8px;margin:8px 0;cursor:pointer}
+  .check input{margin-top:3px;width:18px;height:18px;accent-color:#003366}
+  .check span{font-size:14px}
+  .nav{display:flex;gap:10px;margin-top:24px}
+  button.btn{flex:1;padding:14px;border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer}
+  .btn.prim{background:#003366;color:#fff}
+  .btn.prim:disabled{background:#9aa6b8;cursor:not-allowed}
+  .btn.sec{background:#fff;color:#003366;border:2px solid #003366}
+  .summary{background:#003366;color:#fff;padding:18px;border-radius:10px;margin-bottom:14px}
+  .summary p{margin:0;font-size:14px}
+  .next{background:#fff8e6;border:1px solid #F7A81B;border-radius:10px;padding:14px;margin-top:18px}
+  .next h3{margin:0 0 8px;color:#003366;font-size:15px}
+  .next ol{margin:0;padding-left:20px;font-size:13px;color:#333}
+  .next li{margin-bottom:4px}
+  .disclaimer{font-size:11px;color:#777;margin-top:18px;padding:10px;background:#f1f3f7;border-radius:6px;line-height:1.4}
+  footer{text-align:center;padding:14px;font-size:11px;color:#888;border-top:1px solid #eee;background:#fafbfc}
+  .pill{display:inline-block;background:#eaf1fa;color:#003366;font-size:11px;font-weight:600;padding:3px 9px;border-radius:10px;margin-bottom:8px}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <h1>Estate Planning Walkthrough</h1>
+    <p>Find the documents you and your family need</p>
+    <div class="progress"><div id="bar" style="width:0%"></div></div>
+  </header>
+  <main id="main"></main>
+  <footer>Built live with AI at Wharton Rotary Hackathon</footer>
+</div>
+
+<script>
+const state = { step:0, answers:{} };
+
+const steps = [
+  {
+    q: "Who is this estate plan for?",
+    key: "status",
+    opts: [
+      ["single","I'm single"],
+      ["married","We're married / in a civil union"],
+      ["partnered","Unmarried, but with a partner"]
+    ]
+  },
+  {
+    q: "Do you have children under 18?",
+    key: "minorKids",
+    opts: [["yes","Yes"],["no","No"]]
+  },
+  {
+    q: "Do you own real estate (home, land, rental)?",
+    key: "realEstate",
+    opts: [["yes","Yes"],["no","No"]]
+  },
+  {
+    q: "Estimated total assets (home + savings + retirement + life insurance)?",
+    key: "assets",
+    opts: [
+      ["lt500k","Under $500,000"],
+      ["500k-2m","$500,000 – $2 million"],
+      ["2m-13m","$2M – $13 million"],
+      ["gt13m","Over $13 million"]
+    ]
+  },
+  {
+    q: "Do you own a business or have professional practice?",
+    key: "business",
+    opts: [["yes","Yes"],["no","No"]]
+  },
+  {
+    q: "Do you have specific charitable giving goals?",
+    key: "charity",
+    opts: [["yes","Yes"],["no","No"]]
+  }
+];
+
+function buildDocs(a){
+  const married = a.status === "married";
+  const partnered = a.status === "partnered";
+  const couple = married || partnered;
+  const docs = [];
+
+  // CORE — everyone
+  docs.push({p:true,t:"Last Will & Testament",d:`Directs who inherits your assets and names an executor.${couple?" Each spouse/partner needs their own will.":""}`});
+  docs.push({p:true,t:"Durable Power of Attorney (Financial)",d:"Authorizes someone to manage finances if you become incapacitated. Each adult needs one."});
+  docs.push({p:true,t:"Healthcare Power of Attorney / Proxy",d:"Names who makes medical decisions if you can't. Each adult needs one."});
+  docs.push({p:true,t:"Living Will / Advance Directive",d:"Your wishes for end-of-life care (life support, resuscitation, etc.)."});
+  docs.push({p:true,t:"HIPAA Authorization",d:"Allows named people to access your medical information from doctors and hospitals."});
+  docs.push({t:"Beneficiary Designations Review",d:"Update beneficiaries on retirement accounts (401k, IRA), life insurance, and bank POD/TOD accounts. These override your will."});
+  docs.push({t:"Digital Asset Inventory & Access Plan",d:"List of online accounts, passwords, crypto, photos, and instructions for access."});
+  docs.push({t:"Letter of Instruction",d:"Non-legal note to family: location of documents, funeral wishes, account list, contacts."});
+
+  // Couples
+  if(couple){
+    docs.push({t:"Spousal/Partner Beneficiary Coordination",d:"Coordinate wills and beneficiaries so assets pass smoothly between you. Partners (unmarried) especially need explicit documents — no automatic legal protections."});
+    if(partnered) docs.push({p:true,t:"Cohabitation / Domestic Partnership Agreement",d:"Unmarried partners have NO automatic inheritance rights — explicit documents are critical."});
+  }
+
+  // Minor children
+  if(a.minorKids === "yes"){
+    docs.push({p:true,t:"Guardianship Designation for Minor Children",d:"Names who raises your kids if both parents are gone. Include in your will + a standalone designation."});
+    docs.push({t:"Children's Trust (often within the will)",d:"Holds inheritance for kids until a chosen age (e.g., 25, 30). Names a trustee to manage funds."});
+    docs.push({t:"Life Insurance Review",d:"Term life insurance to fund children's care, education, and home payoff."});
+  }
+
+  // Real estate / assets
+  if(a.realEstate === "yes" || ["500k-2m","2m-13m","gt13m"].includes(a.assets)){
+    docs.push({t:"Revocable Living Trust",d:"Avoids probate, keeps your estate private, and simplifies management of real estate or multi-state property."});
+  }
+  if(a.realEstate === "yes"){
+    docs.push({t:"Property Deed Review / Re-titling",d:"Ensure deeds align with your trust or joint ownership intentions."});
+  }
+
+  // Larger estates
+  if(a.assets === "2m-13m"){
+    docs.push({t:"Estate Tax Planning Review",d:"Federal exemption is ~$13.6M/individual but scheduled to drop in 2026. Plan now while exemptions are high."});
+  }
+  if(a.assets === "gt13m"){
+    docs.push({p:true,t:"Irrevocable Trust(s) — e.g., ILIT, SLAT, GRAT",d:"Move assets out of your taxable estate. Talk to an estate attorney + CPA."});
+    docs.push({t:"Annual Gifting Strategy",d:"Use the $18k/year per-recipient gift exclusion to reduce estate size."});
+  }
+
+  // Business
+  if(a.business === "yes"){
+    docs.push({p:true,t:"Buy-Sell Agreement",d:"Determines what happens to your business interest at death, disability, or exit."});
+    docs.push({t:"Business Succession Plan",d:"Who runs/owns the business after you. Often funded with key-person life insurance."});
+  }
+
+  // Charity
+  if(a.charity === "yes"){
+    docs.push({t:"Charitable Bequest or Donor-Advised Fund",d:"Build giving into your will or set up a DAF / charitable trust for tax-efficient generosity."});
+  }
+
+  return docs;
+}
+
+function nextSteps(a){
+  const items = [
+    "Gather a list of all assets, accounts, and debts.",
+    "Choose your executor, agents, guardians, and trustees — and ASK them first.",
+    "Meet with an estate attorney in your state (laws vary).",
+    "Review beneficiary designations on every retirement & insurance account.",
+    "Store originals in a safe place; tell trusted family where they are.",
+    "Revisit every 3–5 years or after major life events (marriage, birth, move, big asset change)."
+  ];
+  return items;
+}
+
+function render(){
+  const m = document.getElementById('main');
+  const total = steps.length + 1;
+  document.getElementById('bar').style.width = Math.round(state.step/total*100)+"%";
+
+  if(state.step < steps.length){
+    const s = steps[state.step];
+    const cur = state.answers[s.key];
+    m.innerHTML = `
+      <span class="pill">Question ${state.step+1} of ${steps.length}</span>
+      <h2>${s.q}</h2>
+      <div class="choices">
+        ${s.opts.map(([v,l])=>`<button class="choice ${cur===v?'sel':''}" data-v="${v}">${l}</button>`).join('')}
+      </div>
+      <div class="nav">
+        ${state.step>0?'<button class="btn sec" id="back">Back</button>':''}
+        <button class="btn prim" id="next" ${cur?'':'disabled'}>Next</button>
+      </div>
+    `;
+    m.querySelectorAll('.choice').forEach(b=>b.onclick=()=>{
+      state.answers[s.key]=b.dataset.v; render();
+    });
+    if(document.getElementById('back')) document.getElementById('back').onclick=()=>{state.step--;render();};
+    document.getElementById('next').onclick=()=>{if(state.answers[s.key]){state.step++;render();}};
+  } else {
+    document.getElementById('bar').style.width="100%";
+    const a = state.answers;
+    const docs = buildDocs(a);
+    const label = a.status==="married"?"You & your spouse":a.status==="partnered"?"You & your partner":"You";
+    m.innerHTML = `
+      <div class="summary">
+        <p><strong>${label}</strong> should put the following ${docs.length} documents in place. Items in <span style="color:#F7A81B">orange</span> are essential foundations; <span style="color:#ffb3a3">red</span> = top priority.</p>
+      </div>
+      <h2 style="font-size:18px">Your Document Checklist</h2>
+      ${docs.map((d,i)=>`
+        <label class="check">
+          <input type="checkbox" />
+          <span><strong style="color:#003366">${d.t}</strong>${d.p?' <span class="tag">Priority</span>':''}<br><span style="font-size:13px;color:#555">${d.d}</span></span>
+        </label>
+      `).join('')}
+      <div class="next">
+        <h3>Recommended Next Steps</h3>
+        <ol>${nextSteps(a).map(x=>`<li>${x}</li>`).join('')}</ol>
+      </div>
+      <div class="disclaimer">
+        <strong>Disclaimer:</strong> This tool is educational only and not legal, tax, or financial advice. Estate laws vary by state. Consult a licensed estate planning attorney in your state before acting.
+      </div>
+      <div class="nav">
+        <button class="btn sec" id="back">Back</button>
+        <button class="btn prim" id="restart">Start Over</button>
+      </div>
+    `;
+    document.getElementById('back').onclick=()=>{state.step--;render();};
+    document.getElementById('restart').onclick=()=>{state.step=0;state.answers={};render();};
+  }
+  window.scrollTo(0,0);
+}
+render();
+</script>
+</body>
+</html>
