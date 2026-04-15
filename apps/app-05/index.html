@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FeedTheFuture — Food Production Planner</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: linear-gradient(160deg, #003366 0%, #00509e 100%);
+    color: #fff;
+    min-height: 100vh;
+    padding: 16px;
+  }
+  .container { max-width: 560px; margin: 0 auto; }
+  header { text-align: center; padding: 20px 0 12px; }
+  header h1 { font-size: 26px; margin-bottom: 6px; }
+  header h1 span { color: #F7A81B; }
+  header p { font-size: 14px; opacity: 0.9; }
+  .card {
+    background: #fff;
+    color: #222;
+    border-radius: 14px;
+    padding: 18px;
+    margin: 14px 0;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.2);
+  }
+  .card h2 { color: #003366; font-size: 18px; margin-bottom: 12px; }
+  label { display: block; font-size: 14px; font-weight: 600; margin: 10px 0 4px; color: #003366; }
+  input[type=number], select {
+    width: 100%;
+    padding: 10px;
+    font-size: 16px;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    background: #fafafa;
+  }
+  input:focus, select:focus { outline: none; border-color: #F7A81B; }
+  button {
+    width: 100%;
+    padding: 14px;
+    font-size: 16px;
+    font-weight: 700;
+    background: #F7A81B;
+    color: #003366;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    margin-top: 12px;
+  }
+  button:active { transform: scale(0.98); }
+  .results { display: none; }
+  .stat {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid #eee;
+  }
+  .stat:last-child { border-bottom: none; }
+  .stat .label { font-size: 14px; color: #555; }
+  .stat .value { font-size: 16px; font-weight: 700; color: #003366; }
+  .stat .value.good { color: #2a8a3e; }
+  .stat .value.bad { color: #c0392b; }
+  .strategy {
+    background: #fff8e6;
+    border-left: 4px solid #F7A81B;
+    padding: 10px 12px;
+    margin: 8px 0;
+    border-radius: 6px;
+    font-size: 14px;
+    color: #333;
+  }
+  .strategy b { color: #003366; }
+  .gap-bar {
+    height: 10px;
+    background: #eee;
+    border-radius: 5px;
+    overflow: hidden;
+    margin-top: 6px;
+  }
+  .gap-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #2a8a3e, #F7A81B, #c0392b);
+    transition: width 0.8s ease;
+  }
+  footer {
+    text-align: center;
+    font-size: 12px;
+    opacity: 0.75;
+    margin-top: 20px;
+    padding: 16px 0;
+  }
+  .facts { font-size: 13px; line-height: 1.5; color: #444; }
+  .facts li { margin-left: 18px; margin-bottom: 4px; }
+</style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Feed<span>The</span>Future</h1>
+      <p>Plan how to feed a growing world — sustainably.</p>
+    </header>
+
+    <div class="card">
+      <h2>🌍 Your Scenario</h2>
+      <label for="pop">Population to feed (millions)</label>
+      <input type="number" id="pop" value="9700" min="1">
+
+      <label for="year">Target year</label>
+      <input type="number" id="year" value="2050" min="2026" max="2100">
+
+      <label for="diet">Primary diet pattern</label>
+      <select id="diet">
+        <option value="1.0">Current global average</option>
+        <option value="1.25">High-meat / Western</option>
+        <option value="0.75">Mediterranean / balanced</option>
+        <option value="0.55">Plant-forward / flexitarian</option>
+      </select>
+
+      <label for="waste">Food waste reduction</label>
+      <select id="waste">
+        <option value="0">None — 30% wasted today</option>
+        <option value="0.5">Moderate — cut waste in half</option>
+        <option value="0.8">Aggressive — cut waste 80%</option>
+      </select>
+
+      <label for="tech">Agricultural technology adoption</label>
+      <select id="tech">
+        <option value="1.0">Business as usual</option>
+        <option value="1.2">Precision ag + drought-resistant crops</option>
+        <option value="1.45">+ Vertical farming & cellular ag</option>
+      </select>
+
+      <button onclick="calculate()">Calculate the Plan →</button>
+    </div>
+
+    <div class="card results" id="results">
+      <h2>📊 The Numbers</h2>
+      <div class="stat"><span class="label">Calories needed/day</span><span class="value" id="calNeed"></span></div>
+      <div class="stat"><span class="label">Food produced today (equiv.)</span><span class="value" id="calNow"></span></div>
+      <div class="stat"><span class="label">Production gap</span><span class="value" id="gap"></span></div>
+      <div class="gap-bar"><div class="gap-fill" id="gapFill" style="width:0%"></div></div>
+      <div class="stat"><span class="label">Farmland required</span><span class="value" id="land"></span></div>
+      <div class="stat"><span class="label">Water required</span><span class="value" id="water"></span></div>
+      <div class="stat"><span class="label">CO₂ impact vs. today</span><span class="value" id="co2"></span></div>
+    </div>
+
+    <div class="card results" id="strategyCard">
+      <h2>🌱 Recommended Strategy</h2>
+      <div id="strategies"></div>
+    </div>
+
+    <div class="card">
+      <h2>💡 Did you know?</h2>
+      <ul class="facts">
+        <li>~1/3 of food produced globally is wasted.</li>
+        <li>Agriculture uses 70% of freshwater withdrawals.</li>
+        <li>Halving food waste could feed ~1 billion people.</li>
+        <li>Vertical farms use 95% less water per calorie.</li>
+      </ul>
+    </div>
+
+    <footer>Built live with AI at Wharton Rotary Hackathon</footer>
+  </div>
+
+<script>
+function fmt(n, d=0) {
+  if (n >= 1e9) return (n/1e9).toFixed(1) + 'B';
+  if (n >= 1e6) return (n/1e6).toFixed(1) + 'M';
+  if (n >= 1e3) return (n/1e3).toFixed(1) + 'K';
+  return n.toFixed(d);
+}
+
+function calculate() {
+  const pop = parseFloat(document.getElementById('pop').value) * 1e6;
+  const year = parseInt(document.getElementById('year').value);
+  const diet = parseFloat(document.getElementById('diet').value);
+  const waste = parseFloat(document.getElementById('waste').value);
+  const tech = parseFloat(document.getElementById('tech').value);
+
+  const baseCal = 2500;
+  const calNeeded = pop * baseCal * diet;
+  const todayProd = 7.9e9 * 2900;
+  const effectiveProd = todayProd * tech * (1 + waste * 0.3);
+
+  const gap = calNeeded - effectiveProd;
+  const gapPct = Math.max(0, Math.min(100, (gap / calNeeded) * 100));
+
+  const landBase = 5.0e9;
+  const land = landBase * diet / tech * (1 - waste * 0.25);
+  const water = 3900 * (pop / 7.9e9) * diet / tech * (1 - waste * 0.2);
+  const co2 = ((diet / tech) * (1 - waste * 0.3) - 1) * 100;
+
+  document.getElementById('calNeed').textContent = fmt(calNeeded) + ' kcal';
+  document.getElementById('calNow').textContent = fmt(effectiveProd) + ' kcal';
+  const gapEl = document.getElementById('gap');
+  if (gap <= 0) {
+    gapEl.textContent = 'Surplus ✓';
+    gapEl.className = 'value good';
+  } else {
+    gapEl.textContent = '+' + fmt(gap) + ' kcal needed';
+    gapEl.className = 'value bad';
+  }
+  document.getElementById('gapFill').style.width = gapPct + '%';
+  document.getElementById('land').textContent = fmt(land/1e6, 1) + 'M hectares';
+  document.getElementById('water').textContent = fmt(water, 0) + ' km³/yr';
+  const co2El = document.getElementById('co2');
+  co2El.textContent = (co2 >= 0 ? '+' : '') + co2.toFixed(0) + '%';
+  co2El.className = 'value ' + (co2 > 0 ? 'bad' : 'good');
+
+  const strat = [];
+  if (gap > 0) {
+    strat.push(`<div class="strategy"><b>Close the gap:</b> Production must rise ${((gap/effectiveProd)*100).toFixed(0)}% — prioritize yield gains in sub-Saharan Africa & South Asia where gaps are largest.</div>`);
+  } else {
+    strat.push(`<div class="strategy"><b>On track:</b> This scenario feeds everyone. Focus shifts to resilience and equitable distribution.</div>`);
+  }
+  if (diet >= 1.0) strat.push(`<div class="strategy"><b>Shift diets:</b> A plant-forward shift cuts land & water needs by ~40%.</div>`);
+  if (waste < 0.5) strat.push(`<div class="strategy"><b>Cut waste:</b> Cold chains, better packaging, and consumer education can halve waste.</div>`);
+  if (tech < 1.2) strat.push(`<div class="strategy"><b>Invest in tech:</b> Precision ag, drought-resistant seeds, and satellite crop monitoring boost yields 15–25%.</div>`);
+  if (tech < 1.45) strat.push(`<div class="strategy"><b>Next-gen production:</b> Vertical farms and cellular agriculture can decouple food from land.</div>`);
+  strat.push(`<div class="strategy"><b>Protect soil & water:</b> Regenerative practices keep tomorrow's farms productive.</div>`);
+
+  document.getElementById('strategies').innerHTML = strat.join('');
+  document.getElementById('results').style.display = 'block';
+  document.getElementById('strategyCard').style.display = 'block';
+  document.getElementById('results').scrollIntoView({behavior:'smooth', block:'start'});
+}
+</script>
+</body>
+</html>
