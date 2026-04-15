@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Rotary Bridge — Find Your Place at Wharton Rotary</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:linear-gradient(160deg,#003366 0%,#00509e 100%);color:#fff;min-height:100vh;padding:16px;padding-bottom:80px}
+  .wrap{max-width:480px;margin:0 auto}
+  header{text-align:center;padding:24px 8px 16px}
+  .logo{display:inline-block;background:#F7A81B;color:#003366;font-weight:800;font-size:14px;padding:6px 14px;border-radius:20px;letter-spacing:1px;margin-bottom:12px}
+  h1{font-size:30px;line-height:1.15;margin-bottom:8px;font-weight:800}
+  .sub{font-size:15px;opacity:.9;line-height:1.4}
+  .card{background:#fff;color:#003366;border-radius:18px;padding:22px;margin-top:18px;box-shadow:0 8px 30px rgba(0,0,0,.18)}
+  .card h2{font-size:20px;margin-bottom:12px}
+  .card p{font-size:15px;line-height:1.5;color:#1a3a5c}
+  .step-label{font-size:12px;font-weight:700;color:#F7A81B;letter-spacing:1.2px;text-transform:uppercase;margin-bottom:6px}
+  .options{display:flex;flex-direction:column;gap:10px;margin-top:14px}
+  .opt{background:#f3f6fb;border:2px solid transparent;border-radius:12px;padding:14px;font-size:15px;font-weight:600;color:#003366;cursor:pointer;text-align:left;transition:all .15s;display:flex;align-items:center;gap:10px}
+  .opt:hover{background:#e6edf7}
+  .opt.sel{background:#fff7e6;border-color:#F7A81B}
+  .opt .ic{font-size:20px;flex-shrink:0}
+  .btn{display:block;width:100%;background:#F7A81B;color:#003366;border:none;border-radius:12px;padding:15px;font-size:16px;font-weight:800;cursor:pointer;margin-top:18px;letter-spacing:.3px}
+  .btn:disabled{opacity:.4;cursor:not-allowed}
+  .btn.alt{background:#fff;color:#003366;border:2px solid #003366}
+  .progress{height:6px;background:rgba(255,255,255,.2);border-radius:3px;overflow:hidden;margin:14px 0 4px}
+  .progress > div{height:100%;background:#F7A81B;transition:width .3s}
+  .match{text-align:center;padding:28px 22px}
+  .match .badge{display:inline-block;background:#F7A81B;color:#003366;padding:8px 16px;border-radius:20px;font-weight:800;font-size:13px;letter-spacing:1px;margin-bottom:14px}
+  .match h2{font-size:26px;margin-bottom:10px}
+  .match .why{margin:16px 0;padding:14px;background:#fff7e6;border-radius:12px;font-size:14px;line-height:1.5;text-align:left;color:#1a3a5c}
+  .pairings{margin-top:18px;text-align:left}
+  .pairings h3{font-size:14px;color:#F7A81B;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px}
+  .person{display:flex;align-items:center;gap:12px;padding:12px;background:#f3f6fb;border-radius:12px;margin-bottom:8px}
+  .avatar{width:44px;height:44px;border-radius:50%;background:#003366;color:#F7A81B;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:18px;flex-shrink:0}
+  .person .info{flex:1}
+  .person .name{font-weight:700;font-size:15px}
+  .person .meta{font-size:12px;color:#56708a;margin-top:2px}
+  .gen{font-size:11px;background:#003366;color:#F7A81B;padding:3px 8px;border-radius:10px;font-weight:700}
+  .stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:18px}
+  .stat{background:#003366;color:#fff;padding:12px 6px;border-radius:10px;text-align:center}
+  .stat .n{font-size:22px;font-weight:800;color:#F7A81B}
+  .stat .l{font-size:10px;text-transform:uppercase;letter-spacing:.8px;margin-top:2px;opacity:.85}
+  .cta-row{display:flex;gap:8px;margin-top:14px}
+  .cta-row .btn{margin-top:0}
+  footer{text-align:center;font-size:12px;opacity:.7;margin-top:24px;padding:0 12px}
+  .pill-row{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:10px}
+  .pill{background:rgba(255,255,255,.15);padding:5px 10px;border-radius:12px;font-size:12px}
+  .age-bar{display:flex;height:30px;border-radius:8px;overflow:hidden;margin-top:10px;font-size:11px;font-weight:700}
+  .age-bar > div{display:flex;align-items:center;justify-content:center;color:#fff}
+  .hide{display:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo">⚙ WHARTON ROTARY</div>
+    <h1>Rotary Bridge</h1>
+    <p class="sub">Find your place. Bridge generations. Make an impact in 60 seconds.</p>
+  </header>
+
+  <!-- INTRO -->
+  <div id="intro">
+    <div class="card">
+      <div class="step-label">Why Rotary?</div>
+      <h2>Where every generation belongs.</h2>
+      <p>Wharton Rotary connects students, young pros, parents, and retirees around real local impact. Take the 4-question match to see how <em>you</em> fit.</p>
+      <div class="age-bar">
+        <div style="background:#F7A81B;color:#003366;flex:1.2">Gen Z</div>
+        <div style="background:#e89800;flex:1.5">Millennials</div>
+        <div style="background:#003366;flex:2">Gen X</div>
+        <div style="background:#00509e;flex:1.8">Boomers</div>
+        <div style="background:#1a3a5c;flex:1">Silent</div>
+      </div>
+      <p style="font-size:12px;margin-top:8px;opacity:.7">Our goal: a balanced bridge across all 5 generations.</p>
+      <button class="btn" onclick="start()">Find My Match →</button>
+    </div>
+
+    <div class="card">
+      <div class="step-label">What we do together</div>
+      <div class="pill-row" style="justify-content:flex-start">
+        <span class="pill" style="background:#003366;color:#fff">📚 Literacy</span>
+        <span class="pill" style="background:#003366;color:#fff">🌳 Environment</span>
+        <span class="pill" style="background:#003366;color:#fff">🍽 Food security</span>
+        <span class="pill" style="background:#003366;color:#fff">🎓 Scholarships</span>
+        <span class="pill" style="background:#003366;color:#fff">🤝 Mentorship</span>
+        <span class="pill" style="background:#003366;color:#fff">🌍 Global health</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- QUIZ -->
+  <div id="quiz" class="hide">
+    <div class="card">
+      <div class="progress"><div id="bar" style="width:25%"></div></div>
+      <div class="step-label" id="stepLbl">Question 1 of 4</div>
+      <h2 id="qText"></h2>
+      <div class="options" id="opts"></div>
+      <button class="btn" id="nextBtn" disabled onclick="next()">Continue →</button>
+    </div>
+  </div>
+
+  <!-- RESULT -->
+  <div id="result" class="hide">
+    <div class="card match">
+      <div class="badge">YOUR MATCH</div>
+      <h2 id="matchTitle"></h2>
+      <p id="matchDesc" style="color:#1a3a5c;font-size:15px;line-height:1.5"></p>
+      <div class="why" id="whyText"></div>
+
+      <div class="pairings">
+        <h3>Members you'd click with</h3>
+        <div id="people"></div>
+      </div>
+
+      <div class="stats">
+        <div class="stat"><div class="n" id="s1">—</div><div class="l">Hours/mo</div></div>
+        <div class="stat"><div class="n" id="s2">—</div><div class="l">First event</div></div>
+        <div class="stat"><div class="n" id="s3">—</div><div class="l">New friends</div></div>
+      </div>
+
+      <div class="cta-row">
+        <button class="btn alt" onclick="restart()">Retake</button>
+        <button class="btn" onclick="rsvp()">RSVP to a meeting</button>
+      </div>
+    </div>
+  </div>
+
+  <footer>Built live with AI at Wharton Rotary Hackathon</footer>
+</div>
+
+<script>
+const questions = [
+  {
+    q: "What life stage are you in right now?",
+    opts: [
+      {t:"Student / just starting out", v:"genz", ic:"🎓"},
+      {t:"Building career & family", v:"mil", ic:"🚀"},
+      {t:"Established, kids growing", v:"genx", ic:"🏡"},
+      {t:"Empty nester / retired", v:"boom", ic:"🌅"}
+    ]
+  },
+  {
+    q: "What do you want MORE of in your life?",
+    opts: [
+      {t:"Mentors & professional network", v:"mentor", ic:"🤝"},
+      {t:"Hands-on volunteering", v:"hands", ic:"🛠"},
+      {t:"Friendship across ages", v:"social", ic:"☕"},
+      {t:"Big-picture leadership", v:"lead", ic:"🧭"}
+    ]
+  },
+  {
+    q: "Which cause lights you up?",
+    opts: [
+      {t:"Youth literacy & education", v:"lit", ic:"📚"},
+      {t:"Environment & sustainability", v:"env", ic:"🌳"},
+      {t:"Food security & local need", v:"food", ic:"🍽"},
+      {t:"Global health & clean water", v:"glob", ic:"🌍"}
+    ]
+  },
+  {
+    q: "How much time can you give per month?",
+    opts: [
+      {t:"An hour or two — light touch", v:"low", ic:"⏱"},
+      {t:"A few hours — steady involvement", v:"med", ic:"📅"},
+      {t:"All in — leadership ready", v:"high", ic:"🔥"}
+    ]
+  }
+];
+
+const profiles = {
+  connector:{title:"The Connector",desc:"You bring people together. Rotary's social fabric needs you.",why:"Wharton Rotary's monthly mixers and committee work give you constant chances to introduce members across generations — the exact gap we're trying to close."},
+  builder:{title:"The Builder",desc:"You want to roll up your sleeves and see real results.",why:"Our literacy and food-security projects are hands-on and high-impact. You'll work shoulder-to-shoulder with members 20+ years older AND younger than you."},
+  mentor:{title:"The Mentor / Mentee",desc:"You're here to grow — and help others grow too.",why:"Rotary's reverse-mentorship pairs (a 24-year-old teaches AI to a 64-year-old; the 64-year-old teaches negotiation back) is our fastest-growing program."},
+  visionary:{title:"The Visionary",desc:"You think big and want a seat at the table.",why:"Wharton Rotary actively recruits new committee chairs. Bring a fresh idea and we'll back it — that's how we keep the club young at heart."}
+};
+
+const peoplePool = [
+  {n:"Maya R.",g:"Gen Z",role:"Wharton senior • Literacy chair",in:"📚🤝"},
+  {n:"James T.",g:"Millennial",role:"Founder • Loves trail cleanups",in:"🌳🛠"},
+  {n:"Priya S.",g:"Gen X",role:"VP Marketing • Mentor lead",in:"🤝🧭"},
+  {n:"Robert L.",g:"Boomer",role:"Retired CFO • Scholarship board",in:"🎓🧭"},
+  {n:"Eleanor W.",g:"Silent",role:"Past President • Global health",in:"🌍❤"},
+  {n:"Devon K.",g:"Millennial",role:"Engineer • Reverse-mentor program",in:"🤝📚"},
+  {n:"Sofia A.",g:"Gen Z",role:"MBA student • Food drive lead",in:"🍽🛠"},
+  {n:"Frank M.",g:"Boomer",role:"Small biz owner • Connector",in:"☕🤝"}
+];
+
+let step=0, answers=[], selected=null;
+
+function start(){
+  document.getElementById('intro').classList.add('hide');
+  document.getElementById('quiz').classList.remove('hide');
+  step=0; answers=[]; render();
+}
+
+function render(){
+  const q=questions[step];
+  document.getElementById('stepLbl').textContent=`Question ${step+1} of ${questions.length}`;
+  document.getElementById('qText').textContent=q.q;
+  document.getElementById('bar').style.width=((step+1)/questions.length*100)+'%';
+  const wrap=document.getElementById('opts'); wrap.innerHTML='';
+  selected=null;
+  document.getElementById('nextBtn').disabled=true;
+  document.getElementById('nextBtn').textContent = step===questions.length-1 ? 'See My Match →' : 'Continue →';
+  q.opts.forEach((o,i)=>{
+    const b=document.createElement('button');
+    b.className='opt';
+    b.innerHTML=`<span class="ic">${o.ic}</span><span>${o.t}</span>`;
+    b.onclick=()=>{
+      [...wrap.children].forEach(c=>c.classList.remove('sel'));
+      b.classList.add('sel');
+      selected=o.v;
+      document.getElementById('nextBtn').disabled=false;
+    };
+    wrap.appendChild(b);
+  });
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function next(){
+  answers.push(selected);
+  step++;
+  if(step<questions.length){ render(); }
+  else { showResult(); }
+}
+
+function showResult(){
+  document.getElementById('quiz').classList.add('hide');
+  document.getElementById('result').classList.remove('hide');
+
+  const want=answers[1];
+  let key='connector';
+  if(want==='hands') key='builder';
+  else if(want==='mentor') key='mentor';
+  else if(want==='lead') key='visionary';
+  else if(want==='social') key='connector';
+
+  const p=profiles[key];
+  document.getElementById('matchTitle').textContent=p.title;
+  document.getElementById('matchDesc').textContent=p.desc;
+  document.getElementById('whyText').innerHTML='<strong>Why this fits:</strong> '+p.why;
+
+  // pick 3 cross-generational members, prioritizing different gen than user
+  const userGen=answers[0];
+  const genMap={genz:"Gen Z",mil:"Millennial",genx:"Gen X",boom:"Boomer"};
+  const myGen=genMap[userGen];
+  const others=peoplePool.filter(x=>x.g!==myGen).sort(()=>Math.random()-.5).slice(0,3);
+  const peopleEl=document.getElementById('people');
+  peopleEl.innerHTML='';
+  others.forEach(x=>{
+    const init=x.n.split(' ').map(s=>s[0]).join('');
+    peopleEl.innerHTML+=`<div class="person"><div class="avatar">${init}</div><div class="info"><div class="name">${x.n} <span class="gen">${x.g}</span></div><div class="meta">${x.role} ${x.in}</div></div></div>`;
+  });
+
+  const time=answers[3];
+  document.getElementById('s1').textContent= time==='low'?'2':time==='med'?'5':'10+';
+  document.getElementById('s2').textContent='Apr 22';
+  document.getElementById('s3').textContent= time==='low'?'5':time==='med'?'12':'25+';
+}
+
+function restart(){
+  document.getElementById('result').classList.add('hide');
+  document.getElementById('intro').classList.remove('hide');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function rsvp(){
+  alert("🎉 You're on the list!\n\nNext meeting: Wed Apr 22, 12:00pm\nWharton Country Club\n\nWe'll pair you with a member from a different generation as your first-meeting buddy.");
+}
+</script>
+</body>
+</html>
