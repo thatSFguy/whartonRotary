@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Make Carl King Nicer</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background: linear-gradient(135deg, #003366 0%, #00509e 100%);
+    color: #fff;
+    min-height: 100vh;
+    padding: 20px;
+  }
+  header {
+    text-align: center;
+    padding: 30px 10px 20px;
+  }
+  h1 {
+    color: #F7A81B;
+    font-size: 2rem;
+    margin-bottom: 8px;
+  }
+  .subtitle {
+    font-size: 1rem;
+    opacity: 0.9;
+    margin-bottom: 20px;
+  }
+  .joke-card {
+    background: #fff;
+    color: #003366;
+    border-radius: 16px;
+    padding: 28px 22px;
+    margin: 20px auto;
+    max-width: 480px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+    border-left: 6px solid #F7A81B;
+    text-align: center;
+    font-size: 1.15rem;
+    line-height: 1.5;
+    min-height: 140px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .controls {
+    text-align: center;
+    margin: 20px 0;
+  }
+  button {
+    background: #F7A81B;
+    color: #003366;
+    border: none;
+    padding: 14px 28px;
+    font-size: 1.1rem;
+    font-weight: bold;
+    border-radius: 30px;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    transition: transform 0.1s;
+  }
+  button:active { transform: scale(0.96); }
+  .counter {
+    text-align: center;
+    margin-top: 10px;
+    font-size: 0.9rem;
+    opacity: 0.85;
+  }
+  .all-jokes {
+    max-width: 600px;
+    margin: 30px auto;
+  }
+  .all-jokes h2 {
+    color: #F7A81B;
+    text-align: center;
+    margin-bottom: 14px;
+  }
+  .mini-joke {
+    background: rgba(255,255,255,0.1);
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin: 8px 0;
+    font-size: 0.95rem;
+    border-left: 3px solid #F7A81B;
+  }
+  footer {
+    text-align: center;
+    margin-top: 40px;
+    padding: 20px;
+    font-size: 0.8rem;
+    opacity: 0.7;
+  }
+</style>
+</head>
+<body>
+  <header>
+    <h1>👑 How to Make Carl King Nicer</h1>
+    <p class="subtitle">A scientifically rigorous joke collection</p>
+  </header>
+
+  <div class="joke-card" id="jokeCard">Tap the button for a joke!</div>
+
+  <div class="controls">
+    <button onclick="nextJoke()">Tell me a joke 😄</button>
+    <div class="counter" id="counter"></div>
+  </div>
+
+  <div class="all-jokes">
+    <h2>📜 The Full Collection</h2>
+    <div id="allJokes"></div>
+  </div>
+
+  <footer>Built live with AI at Wharton Rotary Hackathon</footer>
+
+<script>
+  const jokes = [
+    "How do you make Carl King nicer? Add a 'g' — now he's Kinger.",
+    "Carl King walked into a room and everyone smiled. Turns out he was holding donuts. Step 1: donuts.",
+    "Scientists studied Carl King for years. Their conclusion: 'He's already pretty nice, actually.'",
+    "To make Carl King nicer, simply compliment his tie. He doesn't wear one, but he'll appreciate the thought.",
+    "Carl King's secret to niceness? Two cups of coffee before any Rotary meeting.",
+    "How do you make Carl King 10% nicer? Tell him the meeting is ending early.",
+    "Carl King became nicer after he learned that 'Rotary' rhymes with 'notary' — and he found that delightful.",
+    "Want Carl King to be nicer? Mention Wharton. Watch the magic happen.",
+    "Carl King is like a fine wine — he gets nicer with age and the occasional cheese plate.",
+    "To make Carl King nicer: smile first. He matches energy like a mirror.",
+    "Carl King once tried to be mean. He failed. He apologized. Then he bought everyone lunch.",
+    "Step 1: greet Carl King. Step 2: there is no step 2. He's already nice.",
+    "How do you upgrade Carl King to 'extra nice'? Ask about his weekend.",
+    "Carl King's niceness is open source — feel free to contribute.",
+    "To unlock Carl King's nicest mode, simply say 'Go Quakers!' 🎓",
+    "Carl King's nice-meter goes from 'pleasant' to 'legendary.' We're working on the patch notes.",
+    "Want Carl King even nicer? Hand him a microphone. He thrives.",
+    "Carl King became 30% nicer the day he discovered AI hackathons.",
+    "Carl King's niceness has been independently verified by three Rotarians and a golden retriever.",
+    "How do you make Carl King nicer? Trick question — you can't improve perfection. (He told us to write that.)"
+  ];
+
+  let currentIndex = -1;
+  let shuffled = [...jokes].sort(() => Math.random() - 0.5);
+
+  function nextJoke() {
+    currentIndex = (currentIndex + 1) % shuffled.length;
+    if (currentIndex === 0) shuffled.sort(() => Math.random() - 0.5);
+    document.getElementById('jokeCard').textContent = shuffled[currentIndex];
+    document.getElementById('counter').textContent =
+      `Joke ${currentIndex + 1} of ${shuffled.length}`;
+  }
+
+  function renderAll() {
+    const container = document.getElementById('allJokes');
+    jokes.forEach((j, i) => {
+      const div = document.createElement('div');
+      div.className = 'mini-joke';
+      div.textContent = `${i + 1}. ${j}`;
+      container.appendChild(div);
+    });
+  }
+
+  renderAll();
+  nextJoke();
+</script>
+</body>
+</html>
